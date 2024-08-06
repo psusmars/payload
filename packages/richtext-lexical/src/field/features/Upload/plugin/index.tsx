@@ -10,7 +10,7 @@ import {
   type LexicalCommand,
   createCommand,
 } from 'lexical'
-import { useConfig } from 'payload/components/utilities'
+import { useAuth } from 'payload/components/utilities'
 import React, { useEffect } from 'react'
 
 import type { RawUploadPayload } from '../nodes/UploadNode'
@@ -25,7 +25,15 @@ export const INSERT_UPLOAD_COMMAND: LexicalCommand<InsertUploadPayload> =
 
 export function UploadPlugin(): JSX.Element | null {
   const [editor] = useLexicalComposerContext()
-  const { collections } = useConfig()
+  const { permissions } = useAuth()
+  const collections: string[] = []
+  if (permissions) {
+    Object.keys(permissions.collections).forEach((slug) => {
+      if (permissions.collections[slug].read.permission) {
+        collections.push(slug)
+      }
+    })
+  }
 
   useEffect(() => {
     if (!editor.hasNodes([UploadNode])) {
@@ -76,5 +84,5 @@ export function UploadPlugin(): JSX.Element | null {
     )
   }, [editor])
 
-  return <UploadDrawer enabledCollectionSlugs={collections.map(({ slug }) => slug)} />
+  return <UploadDrawer enabledCollectionSlugs={collections} />
 }
